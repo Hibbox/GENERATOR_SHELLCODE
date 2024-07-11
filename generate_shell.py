@@ -52,23 +52,20 @@ def ip_to_integer(ip):
     parts = map(int, ip.split('.'))
     return sum(part << (8 * i) for i, part in enumerate(reversed(list(parts))))
 
+def avoid_null_bytes(ip_integer):
+    base_addition = 0x01010101
+    while True:
+        if b'\x00' not in (ip_integer + base_addition).to_bytes(4, 'big'):
+            return base_addition
+        base_addition += 0x01010101
+
 def prepare_ip(ip):
-    """Prepare the IP address and calculate mov and sub values."""
-    # Convert IP to an integer with adjustments to avoid null bytes
-    if not is_valid_ip(ip):
-        return None
-    ip_integer = ip_to_integer(ip)  # From previous implementation
-    
-    # Define a base value for the addition, it's arbitrary but should be chosen to avoid null bytes
-    base_addition = 0x10FFFF01
-    
-    # Calculate mov_value
+    ip_integer = ip_to_integer(ip)
+    base_addition = avoid_null_bytes(ip_integer)
     mov_value = ip_integer + base_addition
-    
-    # The sub_value is exactly the base_addition
     sub_value = base_addition
-    
     return f"{mov_value:08X}", f"{sub_value:08X}"
+
 
 
 print(ip_to_hex(ipv4))
